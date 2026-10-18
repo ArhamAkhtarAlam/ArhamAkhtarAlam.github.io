@@ -1,0 +1,9 @@
+# LaTeX source and build leftovers: keep off the site (the PDFs here are the locked copies)
+*.tex
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+*.fls
+*.fdb_latexmk
