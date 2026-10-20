@@ -412,11 +412,13 @@ const QUANTUM_VIDEOS = [
   { title:"NIST entropy test", url:"https://www.youtube.com/watch?v=vScQWnxHeVc" },
 ];
 
-// photo slides for one IISc visit: iisc/2025/iisc-2025-001.jpg ... (thumbs/ has the small versions)
-const iiscPhotos = (year, n, date) => Array.from({ length:n }, (_, i) => {
-  const f = `iisc-${year}-${String(i + 1).padStart(3, "0")}.jpg`;
-  return { title:`IISc Open Day · ${date} · photo ${i + 1}`, url:`iisc/${year}/${f}`, thumb:`iisc/${year}/thumbs/${f}` };
+// photo slides for one visit: <folder>/2025/<prefix>-2025-001.jpg ... (thumbs/ has the small versions)
+const photoSlides = (folder, prefix, year, n, what, date) => Array.from({ length:n }, (_, i) => {
+  const f = `${prefix}-${year}-${String(i + 1).padStart(3, "0")}.jpg`;
+  return { title:`${what} · ${date} · photo ${i + 1}`, url:`${folder}/${year}/${f}`, thumb:`${folder}/${year}/thumbs/${f}` };
 });
+const iiscPhotos = (year, n, date) => photoSlides("iisc", "iisc", year, n, "IISc Open Day", date);
+const vitmPhotos = (year, n, date) => photoSlides("vitm", "vitm", year, n, "Visvesvaraya Museum", date);
 const yt = (slides) => ({ name:"YouTube", icon:"▶️", slides });
 
 const SITE = [
@@ -501,6 +503,13 @@ const SITE = [
       { name:"2024 Open Day", icon:"📅", slides:iiscPhotos(2024, 62, "24 Feb 2024"), label:"photo", noIndex:true },
       { name:"2025 Open Day", icon:"📅", slides:iiscPhotos(2025, 168, "1 Mar 2025"), label:"photo", noIndex:true },
       { name:"2026 Open Day", icon:"📅", slides:iiscPhotos(2026, 236, "7 Mar 2026"), label:"photo", noIndex:true },
+    ]},
+    { name:"Visvesvaraya Industrial & Technological Museum", icon:"🏭", items:[
+      { name:"2016 visits", icon:"📅", slides:vitmPhotos(2016, 58, "May 2016"), label:"photo", noIndex:true },
+      { name:"2018 visit", icon:"📅", slides:vitmPhotos(2018, 43, "26 Dec 2018"), label:"photo", noIndex:true },
+      { name:"2023 visit", icon:"📅", slides:vitmPhotos(2023, 36, "4 Jun 2023"), label:"photo", noIndex:true },
+      { name:"2024 visits", icon:"📅", slides:vitmPhotos(2024, 77, "2024"), label:"photo", noIndex:true },
+      { name:"2025 visits", icon:"📅", slides:vitmPhotos(2025, 171, "2025"), label:"photo", noIndex:true },
     ]},
     { name:"Curiocity", icon:"🔭", url:"" },
   ]},
