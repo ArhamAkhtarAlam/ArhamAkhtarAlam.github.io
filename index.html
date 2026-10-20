@@ -149,6 +149,7 @@
   .cover::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,#000a)}
   .cover .play{position:absolute;left:50%;top:50%;width:52px;height:52px;margin:-26px 0 0 -26px;border-radius:50%;display:grid;place-items:center;
     background:#ffffffe6;color:#111;font-size:1.05rem;padding-left:3px;transform:scale(.9);opacity:.9;transition:transform .25s,opacity .25s}
+  .cover.still{background-color:#fff;background-position:center 30%}
   .tile:hover .cover .play{transform:scale(1);opacity:1}
   .cover .count{position:absolute;right:10px;bottom:10px;font-size:.75rem;font-weight:600;padding:3px 9px;border-radius:99px;background:#000b;backdrop-filter:blur(4px)}
   .tile.empty{cursor:default;opacity:.6}
@@ -180,6 +181,7 @@
   .varrow{width:42px;height:42px;font-size:1.4rem;flex:none}
   .stage{flex:1;aspect-ratio:16/9;max-height:62vh;border-radius:14px;overflow:hidden;background:#000;display:grid;place-items:center;position:relative}
   .stage iframe,.stage img{width:100%;height:100%;border:0;object-fit:contain;background:#000}
+  .stage img{position:absolute;inset:0;background:#0b0a15}
   .stage .soon{text-align:center;color:var(--dim);padding:20px}
   .stage .soon b{display:block;font-size:2.4rem;margin-bottom:8px}
   .stage .soon a{color:var(--b)}
@@ -415,14 +417,17 @@ const yt = (slides) => ({ name:"YouTube", icon:"▶️", slides });
 const SITE = [
   { name:"Quantum", icon:"⚛️", items:[
     { name:"Certificates", icon:"🎓", items:[
-      { name:"LinkedIn certificates", icon:"💼", slides:[
-        { title:"Certificate 1", url:"" },   // e.g. "certs/linkedin-1.png" or a PDF / link
-        { title:"Certificate 2", url:"" },
-        { title:"Certificate 3", url:"" },
+      { name:"MIT xPRO certificates", icon:"🏛️", label:"certificate", slides:[
+        { title:"Quantum Computing Fundamentals (Professional Certificate)", url:"certs/mitxpro-quantum-computing-fundamentals.jpg" },
+        { title:"Introduction to Quantum Computing", url:"certs/mitxpro-introduction-to-quantum-computing.jpg" },
+        { title:"Quantum Algorithms for Cybersecurity, Chemistry & Optimization", url:"certs/mitxpro-quantum-algorithms.jpg" },
       ]},
-      { name:"MITx Pro certificates", icon:"🏛️", slides:[
-        { title:"Certificate 1", url:"" },
-        { title:"Certificate 2", url:"" },
+      { name:"LinkedIn Learning certificates", icon:"💼", label:"certificate", slides:[
+        { title:"Understanding Quantum Computing (Learning Path)", url:"certs/linkedin-understanding-quantum-computing.jpg" },
+        { title:"Quantum Computing Fundamentals", url:"certs/linkedin-quantum-computing-fundamentals.jpg" },
+        { title:"Introduction to Quantum Computing", url:"certs/linkedin-introduction-to-quantum-computing.jpg" },
+        { title:"Quantum Cryptography and the Future of Cybersecurity", url:"certs/linkedin-quantum-cryptography.jpg" },
+        { title:"Cloud Quantum Computing Essentials", url:"certs/linkedin-cloud-quantum-computing-essentials.jpg" },
       ]},
     ]},
     { name:"Code", icon:"💻", items:[
@@ -504,7 +509,8 @@ const ICONS = {
 };
 const iconFor = (l) => ICONS[l.name] || `<span>${l.icon || "🔗"}</span>`;
 const ytId = (url) => { const m = (url || "").match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/)([\w-]{11})/); return m && m[1]; };
-const thumb = (url, q = "hqdefault") => { const id = ytId(url); return id ? `https://i.ytimg.com/vi/${id}/${q}.jpg` : null; };
+const isImg = (url) => /\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(url || "");
+const thumb = (url, q = "hqdefault") => { const id = ytId(url); return id ? `https://i.ytimg.com/vi/${id}/${q}.jpg` : isImg(url) ? url : null; };
 const make = (tag, props = {}) => Object.assign(document.createElement(tag), props);
 
 // visit every node: fn(node, pathIndices, trailNames)
@@ -600,7 +606,7 @@ const INDEX = [];
       const key = s.url || (n.name + s.title);
       if (!s.url || seen.has(key)) return;
       seen.add(key);
-      INDEX.push({ item:{ name:s.title, icon:"▶️", slides:[s] }, p, trail:[...trail, n.name] });
+      INDEX.push({ item:{ name:s.title, icon:isImg(s.url) ? "🎓" : "▶️", label:n.label, slides:[s] }, p, trail:[...trail, n.name] });
     });
   });
 })();
@@ -612,17 +618,20 @@ function makeTile(item, { hue, trail, onMenu, delay }){
   el.style.animationDelay = delay + "ms";
 
   const n = isMenu ? item.items.length : isSlides ? item.slides.length : 0;
-  const cover = isSlides && thumb((item.slides.find(s => ytId(s.url)) || {}).url);
+  const first = isSlides && item.slides.find(s => ytId(s.url) || isImg(s.url));
+  const cover = first && thumb(first.url);
+  const isVid = first && !!ytId(first.url);
+  const word = item.label || (isVid ? "video" : "image");
   const meta = isMenu ? `${n} item${n > 1 ? "s" : ""}`
              : isSlides ? (cover ? `${n} video${n > 1 ? "s" : ""}` : `${n} slide${n > 1 ? "s" : ""}`)
              : (item.meta || (item.url ? new URL(item.url).hostname.replace(/^www\./, "") : ""));
   const arrow = isEmpty ? '<span class="soonpill">Coming soon</span>'
-              : `<span class="arrow">${isMenu ? "→" : isSlides ? "▶" : "↗"}</span>`;
+              : `<span class="arrow">${isMenu ? "→" : isSlides ? (cover && !isVid ? "⤢" : "▶") : "↗"}</span>`;
   const trailHtml = trail && trail.length ? `<div class="crumb-trail"></div>` : "";
 
   el.innerHTML = cover
-    ? `<div class="cover" style="background-image:url('${cover}')"><span class="play">▶</span><span class="count">${n > 1 ? n + " videos" : "Watch"}</span></div>
-       <div class="body"><div>${trailHtml}<div class="name"></div><div class="meta">${n > 1 ? "Playlist" : "Video"}</div></div>${arrow}</div>`
+    ? `<div class="cover${isVid ? "" : " still"}" style="background-image:url('${cover}')"><span class="play">${isVid ? "▶" : "⤢"}</span><span class="count">${n > 1 ? `${n} ${word}s` : isVid ? "Watch" : "View"}</span></div>
+       <div class="body"><div>${trailHtml}<div class="name"></div><div class="meta">${isVid ? (n > 1 ? "Playlist" : "Video") : (n > 1 ? "Gallery" : "Image")}</div></div>${arrow}</div>`
     : `<div class="top"><div class="badge${item.logo ? " logo" : ""}">${item.logo ? `<img src="${item.logo}" alt="">` : (item.icon || "✨")}</div>${arrow}</div>
        <div class="body"><div>${trailHtml}<div class="name"></div><div class="meta"></div></div></div>`;
   el.querySelector(".name").textContent = item.name;
