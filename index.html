@@ -412,6 +412,11 @@ const QUANTUM_VIDEOS = [
   { title:"NIST entropy test", url:"https://www.youtube.com/watch?v=vScQWnxHeVc" },
 ];
 
+// photo slides for one IISc visit: iisc/2025/iisc-2025-001.jpg ... (thumbs/ has the small versions)
+const iiscPhotos = (year, n, date) => Array.from({ length:n }, (_, i) => {
+  const f = `iisc-${year}-${String(i + 1).padStart(3, "0")}.jpg`;
+  return { title:`IISc Open Day · ${date} · photo ${i + 1}`, url:`iisc/${year}/${f}`, thumb:`iisc/${year}/thumbs/${f}` };
+});
 const yt = (slides) => ({ name:"YouTube", icon:"▶️", slides });
 
 const SITE = [
@@ -491,9 +496,11 @@ const SITE = [
 
   { name:"Visits", icon:"🧭", items:[
     { name:"IISc", icon:"🏛️", items:[
-      { name:"Year 1", icon:"📅", url:"" },
-      { name:"Year 2", icon:"📅", url:"" },
-      { name:"Year 3", icon:"📅", url:"" },
+      // photos live in iisc/<year>/ (full size) and iisc/<year>/thumbs/ (small previews)
+      { name:"2023 Open Day", icon:"📅", slides:iiscPhotos(2023, 17, "4 Mar 2023"), label:"photo", noIndex:true },
+      { name:"2024 Open Day", icon:"📅", slides:iiscPhotos(2024, 62, "24 Feb 2024"), label:"photo", noIndex:true },
+      { name:"2025 Open Day", icon:"📅", slides:iiscPhotos(2025, 168, "1 Mar 2025"), label:"photo", noIndex:true },
+      { name:"2026 Open Day", icon:"📅", slides:iiscPhotos(2026, 236, "7 Mar 2026"), label:"photo", noIndex:true },
     ]},
     { name:"Curiocity", icon:"🔭", url:"" },
   ]},
@@ -602,7 +609,7 @@ const INDEX = [];
   const seen = new Set();
   walk(SITE, (n, p, trail) => {
     INDEX.push({ item:n, p, trail });
-    (n.slides || []).forEach(s => {
+    (n.noIndex ? [] : n.slides || []).forEach(s => {
       const key = s.url || (n.name + s.title);
       if (!s.url || seen.has(key)) return;
       seen.add(key);
@@ -619,7 +626,7 @@ function makeTile(item, { hue, trail, onMenu, delay }){
 
   const n = isMenu ? item.items.length : isSlides ? item.slides.length : 0;
   const first = isSlides && item.slides.find(s => ytId(s.url) || isImg(s.url));
-  const cover = first && thumb(first.url);
+  const cover = first && thumb(first.thumb || first.url);
   const isVid = first && !!ytId(first.url);
   const word = item.label || (isVid ? "video" : "image");
   const meta = isMenu ? `${n} item${n > 1 ? "s" : ""}`
@@ -753,7 +760,7 @@ function openViewer(item, trail){
   item.slides.forEach((s, k) => {
     const t = make("button", { className:"thumb", onclick:() => showSlide(k) });
     const ti = make("div", { className:"ti" });
-    const th = thumb(s.url, "mqdefault");
+    const th = s.thumb || thumb(s.url, "mqdefault");
     if (th) ti.style.backgroundImage = `url('${th}')`; else ti.textContent = s.url ? "🔗" : "⏳";
     t.append(ti, make("div", { className:"tt", textContent:s.title || `Slide ${k + 1}` }));
     tabsEl.append(t);
