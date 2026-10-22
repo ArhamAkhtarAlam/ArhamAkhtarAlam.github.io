@@ -7,3 +7,8 @@
 *.synctex.gz
 *.fls
 *.fdb_latexmk
+
+# macOS clutter and the original (unresized) photo/video folders
+.DS_Store
+IISc COSEIn 2026/
+Qubit focre visit june 2026/
